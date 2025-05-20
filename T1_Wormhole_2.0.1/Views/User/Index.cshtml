@@ -1,0 +1,374 @@
+﻿<style>
+	.ellipsis-text {
+		display: -webkit-box;
+		-webkit-line-clamp: 3; /* 顯示幾行 */
+		-webkit-box-orient: vertical;
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
+</style>
+<!-- Hero area Start-->
+<!--  Hero area End -->
+<!--? Checkout Area Start-->
+<section class="checkout_area section-padding">
+	<div id="MyProfile" class="container">
+		<div class="billing_details">
+			<div class="row" v-for="item in userinfo">
+				<template v-if="item.edit==true">
+					<form class="row contact_form" action="#" method="post" novalidate="novalidate">
+						<div class="col-lg-3" align="center">
+							<!-- 大頭貼 -->
+							<div style="width: 200px;height: 200px; border: 2px solid black; border-radius: 100%; margin-bottom: 20px; overflow: hidden;">
+								<img id="preView" class="img-fluid" :src="'/api/User/GetPhoto?id='+item.userId+'&?v='+rand" :title="item.name" />
+							</div>
+							<div>
+								@* <input type="file" /> *@
+								<input id="editFile" type="file" class="form-control" name="photo" @@change="editFileChange($event.target)" style="width:200px;" accept="image/*" />
+							</div>
+							<div v-for="item in userstatus">
+								<h4 style="margin-top: 20px;">LV: {{item.level}}</h4>
+							</div>
+							@* <div> *@
+							@* 	<p style="margin-top: 20px; font-size: 20px; font-weight: bold;">Achievement</p> *@
+							@* </div> *@
+						</div>
+						<div class="col-lg-5">
+							<h1 style="color:antiquewhite;">個人資訊編輯</h1>
+							@* <form class="row contact_form" action="#" method="post" novalidate="novalidate" v-for="item in userinfo"> *@
+							<div class="col-md-10 form-group p_star">
+								<input type="text" class="form-control" name="name" v-model="item.name" placeholder="使用者名稱" />
+								@* <span class="placeholder" data-placeholder="Username"></span>*@
+							</div>
+							<div class="col-md-5 form-group p_star">
+								<input type="text" class="form-control" name="phone" v-model="item.phone" placeholder="手機號碼" />
+								@* <span class="placeholder" data-placeholder="Phone number"></span> *@
+							</div>
+							<div class="col-md-5 form-group p_star">
+								<input type="text" class="form-control" name="nickname" v-model="item.nickname" placeholder="暱稱" />
+								@* <span class="placeholder" data-placeholder="nickname"></span> *@
+							</div>
+							<div class="col-md-10 form-group p_star">
+								<select class="country_select" name="sex" v-model="item.sex">
+									<option :value="true">Female</option>
+									<option :value="false">Male</option>
+								</select>
+								<p style="font-size:18px; color:orangered;">性別為必填喔!</p>
+							</div>
+							<div class="col-md-10 form-group p_star">
+								<input placeholder="生日" type="text" name="birthday" onfocus="(this.type='date')" onblur="(this.type='text')" v-model="item.birthday" />
+							</div>
+							<div class="col-md-10 form-group">
+								<textarea class="form-control" name="message" id="message" rows="1" placeholder="簽名檔"
+										  v-model="item.signature"></textarea>
+							</div>
+							<div style="margin-top: 20px; display: flex; justify-content: center;">
+								<button id="saveEdit" type="button" class="btn btn-primary" @@click="editInfo">儲存</button>
+							</div>
+							<div style="margin-top: 20px; display: flex; justify-content: center;">
+								<button class="btn btn-primary" @@click="cancel">取消</button>
+							</div>
+							@* </form> *@
+						</div>
+						<div class="col-lg-4">
+							<div class="order_box">
+								<div style="border-bottom:2px solid #333; margin-bottom:30px;">
+									<label class="col-md-12" style="font-size: 20px;">蟲洞幣</label>
+									<a href="#" style="font-size: 16px; color: #FFF6E0; margin-bottom: 10px;" @@click.prevent="coinsLog">餘額 $ {{item.wallet}}</a>
+								</div>
+								<div style="border-bottom:2px solid #333; margin-bottom:20px;">
+									<h2 style="margin-bottom: 10px; border-bottom:0;">發文歷史紀錄</h2>
+									<ul class="list" v-for="art in articlesHistory" :key="art.articleID">
+										<li>
+											<a :href="'/DiscussArticleView/DiscussArticle?id='+art.articleID">
+												<h3 style="margin:0px;">{{art.title}}</h3>
+												<p class="ellipsis-text">{{art.content}}</p>
+											</a>
+										</li>
+									</ul>
+									@* <a href="#" style="font-size: 16px; color: blue;">Show More</a> *@
+								</div>
+								<div style="border-bottom:2px solid #333; margin-bottom:20px;">
+									<h2 style="margin-bottom: 10px; border-bottom:0;">留言歷史紀錄</h2>
+									<ul class="list" v-for="com in commentHistory" :key="com.articleID">
+										<li>
+											<a :href="'/DiscussArticleView/DiscussArticle?id='+com.articleID">
+												<h3 style="margin:0px;">{{com.title}}</h3>
+												<p class="ellipsis-text">{{com.comment}}</p>
+											</a>
+										</li>
+									</ul>
+									@* <a href="#" style="font-size: 16px; color: blue;">Show More</a> *@
+								</div>
+							</div>
+						</div>
+					</form>
+				</template>
+				<template v-else-if="item.isAdmin==false&&item.edit==false">
+					<div class="col-lg-3" align="center" style="color:whitesmoke;">
+						<!-- 大頭貼 -->
+						<div style="width: 200px;height: 200px; border: 2px solid black; border-radius: 100%; margin-bottom: 20px; overflow: hidden;">
+							<img class="img-fluid" :src="'/api/User/GetPhoto?id='+item.userId+'&?v='+rand" :title="item.name" />
+						</div>
+						<div v-for="item in userstatus">
+							<h4 style="margin-top: 20px; margin-bottom: 20px;">LV: {{item.level}}</h4>
+						</div>
+						<div class="row" style="width: 200px;">
+							<h3 style="margin:0px;color:whitesmoke;">徽章</h3>
+							<div class="col-4 m-md-1" style="width:30px;" v-for="(img,index) in badgeImg" :key="index">
+								<img style="height:30px;" class="img-fluid" :src="img" alt="Obtain Image" />
+							</div>
+						</div>
+						<div class="row" style="width: 200px;">
+							<h3 style="margin:0px;color:whitesmoke;">稱號</h3>
+							<div class="m-md-1" style="width:200px;" v-for="(img,index) in achievementImg" :key="index">
+								<img style="height:30px;" class="img-fluid" :src="img" alt="Obtain Image" />
+							</div>
+						</div>
+
+					</div>
+					<div class="col-lg-5" style="color:whitesmoke;">
+						<h1 style="color:whitesmoke;">我的個人資訊</h1>
+						<div class="row contact_form">
+							<div class="col-md-10" style="margin-top: 10px;margin-bottom: 10px;">
+								<label class="col-md-10" style="font-size: 16px;color:whitesmoke;">使用者名稱:</label>
+								<label class="col-md-10" style="font-size: 16px;color:whitesmoke;">{{item.name}}</label>
+							</div>
+							<div class="col-md-10" style="margin-top: 10px;margin-bottom: 10px;">
+								<label for="" class="col-md-10" style="font-size: 16px;color:whitesmoke;">性別</label>
+								<label for="" class="col-md-10" style="font-size: 16px;color:whitesmoke;">{{item.sex}}</label>
+							</div>
+							<div class="col-md-10" style="margin-top: 10px;margin-bottom: 10px;">
+								<label for="" class="col-md-10" style="font-size: 16px;color:whitesmoke;">生日</label>
+								<label for="" class="col-md-10" style="font-size: 16px;color:whitesmoke;">{{item.birthday}}</label>
+							</div>
+							<div class="col-md-10" style="margin-top: 10px;margin-bottom: 10px;">
+								<label for="" class="col-md-10" style="font-size: 16px;color:whitesmoke;">簽名檔</label>
+								<label for="" class="col-md-10" style="font-size: 16px;color:whitesmoke;">{{item.signature}}</label>
+							</div>
+							<div class="col-md-10" style="margin-top: 10px;margin-bottom: 10px;">
+								<button class="genric-btn default circle" @@click="edit(item.userId)">編輯資訊</button>
+							</div>
+						</div>
+					</div>
+					<div class="col-lg-4">
+						<div class="order_box">
+							<div style="border-bottom:2px solid #333; margin-bottom:30px;">
+								<label class="col-md-12" style="font-size: 20px;">蟲洞幣</label>
+								<a href="#" style="font-size: 16px; color: #FFF6E0; margin-bottom: 10px;" @@click.prevent="coinsLog">餘額 $ {{item.wallet}}</a>
+							</div>
+							<div style="border-bottom:2px solid #333; margin-bottom:20px;">
+								<h2 style="margin-bottom: 10px; border-bottom:0;">發文歷史紀錄</h2>
+								<ul class="list" v-for="art in articlesHistory" :key="art.articleID">
+									<li>
+										<a :href="'/DiscussArticleView/DiscussArticle?id='+art.articleID">
+											<h3 style="margin:0px;">{{art.title}}</h3>
+											<p class="ellipsis-text">{{art.content}}</p>
+										</a>
+									</li>
+								</ul>
+								@* <a href="#" style="font-size: 16px; color: blue;">Show More</a> *@
+							</div>
+							<div style="border-bottom:2px solid #333; margin-bottom:20px;">
+								<h2 style="margin-bottom: 10px; border-bottom:0;">留言歷史紀錄</h2>
+								<ul class="list" v-for="com in commentHistory" :key="com.articleID">
+									<li>
+										<a :href="'/DiscussArticleView/DiscussArticle?id='+com.articleID">
+											<h3 style="margin:0px;">{{com.title}}</h3>
+											<p class="ellipsis-text">{{com.comment}}</p>
+										</a>
+									</li>
+								</ul>
+								@* <a href="#" style="font-size: 16px; color: blue;">Show More</a> *@
+							</div>			
+						</div>
+					</div>
+				</template>
+				<template v-else-if="item.isAdmin==true&&item.edit==false">
+					<h1 style="color:antiquewhite;">管理員個人資訊</h1>
+					<div class ="row contact_form">
+						<div class="col-md-10" style="margin-top: 10px;margin-bottom: 10px;">
+							<label class="col-md-10" style="font-size: 16px;">管理員名稱:</label>
+							<label class="col-md-10" style="font-size: 16px;">{{item.managerName}}</label>
+						</div>
+						<div class="col-md-10" style="margin-top: 10px;margin-bottom: 10px;">
+							<label for="" class="col-md-10" style="font-size: 16px;">組別</label>
+							<label for="" class="col-md-10" style="font-size: 16px;">{{item.managerTeam}}</label>
+						</div>
+					</div>
+				</template>
+				<template v-else>
+					<h1>{{item.empInfo}}</h1>
+				</template>
+			</div>
+		</div>
+	</div>
+</section>
+<!--End Checkout Area -->
+
+
+
+<script>
+
+	Vue.createApp({
+		data(){
+			return {
+				userinfo:[],
+				userstatus:[],
+				badgeImg:[],
+				achievementImg:[],
+				articlesHistory:[],
+				commentHistory:[],
+				myCoinsLog:[],
+				name:"",
+				userId:0,
+				phone:"",
+				nickname:"",
+				birthday:"",
+				//photo:"",
+				signature:"",
+				sex:true,
+				rand:1,
+			};
+		},
+		methods: {
+			async getAll() {
+				let self = this;
+
+				await fetch('/api/User/updateCoins',{
+					credentials: 'include',
+				}).then(x => x.json()).then(res => res);
+
+				await fetch('/api/User/Get',{
+					credentials: 'include',
+				})
+				.then(x => x.json())
+				.then(res => {
+					self.userinfo = res;
+					var item=self.userinfo[0];
+					if(item.sex==true){
+						item.sex="女性";
+					}
+					else if(item.sex==false){
+						item.sex="男性";
+					}
+					else{
+						item.sex= "未填寫";
+					}
+
+					if(item.isAdmin==null){
+						alert(item.empInfo);
+					}
+					else if(item.isAdmin==true){
+						item.isAdmin=true;
+					}				
+					else{
+						self.isAdmin=false;
+					}
+					item.edit=false;
+				});
+				await fetch('/api/User/GetStatus',{
+					credentials: 'include',
+				}).then(x => x.json()).then(res => self.userstatus = res);
+				await fetch('/api/User/GetBadgePicture',{
+					credentials: 'include',
+				}).then(x => x.json()).then(res => self.badgeImg = res);
+				await fetch('/api/User/GetAchievementPicture',{
+					credentials: 'include',
+				}).then(x => x.json()).then(res => self.achievementImg = res);
+				await fetch('/api/User/GetArticlesHistory',{
+					credentials: 'include',
+				}).then(x => x.json()).then(res => self.articlesHistory = res);
+				await fetch('/api/User/GetCommentHistory',{
+					credentials: 'include',
+				}).then(x => x.json()).then(res => self.commentHistory = res);
+			},
+			edit(userid){
+				let self = this;
+				var item=self.userinfo[0];
+				//alert(JSON.stringify(item));
+				if(item.userId== userid){
+					item.edit=true;
+				};
+			},
+			cancel(){
+				let self = this;
+				var item=self.userinfo[0];
+				//alert(JSON.stringify(item));
+				if(item.edit==true){
+					item.edit=false;
+				};
+			},
+			async editInfo(){
+				let self=this;
+				var data=new FormData();
+				data.append("userId",self.userinfo[0].userId);
+				data.append("name",self.userinfo[0].name);
+				data.append("phone",self.userinfo[0].phone);
+				data.append("nickname",self.userinfo[0].nickname);
+				data.append("birthday",self.userinfo[0].birthday);
+				data.append("signature",self.userinfo[0].signature);
+				data.append("sex",self.userinfo[0].sex);
+				data.append("photo",document.querySelector("#editFile").files[0]);
+				// alert(JSON.stringify(data))
+				await fetch('/api/User/Edit',{
+					body:data,
+					// headers:{
+					//     "content-type":"multipart/form-data",
+					// },
+					method:"POST",
+				}).then(res=>{
+					if(res){
+						//alert('Ok: '+res.data);
+						self.getAll(self.userId);
+						self.rand=new Date().getTime(); //用時間控制rand擷取版本
+						self.userinfo[0].edit=false;
+					}else{
+						alert('Not ok')
+					}
+				});
+
+			},
+			readURL(inputTypeFile,img,btn){
+				if(inputTypeFile.files[0]!=null){
+					var file=inputTypeFile.files[0];
+					var allowType="image.*";
+					if(file.type.match(allowType)){
+						btn.prop("disabled",false);
+						var reader=new FileReader();
+						reader.onload=function(e){
+							img.src=e.target.result;
+							img.title=file.name;
+						};
+						reader.readAsDataURL(file);
+					}
+					else
+					{
+						alert("請選擇圖片檔案");
+						btn.prop("disabled",true);
+						inputTypeFile.value="";
+					}
+				}
+			},
+
+			editFileChange(inputTypeFile){
+				//alert(`Change:${inputTypeFile.name}`);
+				let self=this;
+				//alert(`Change: ${fileInput.value?.name}`)
+				self.readURL(inputTypeFile,inputTypeFile.parentElement.previousElementSibling.firstElementChild,$("#saveEdit"));
+			},
+
+			coinsLog() {
+				 axios.get("/api/User/GetCoinsLog")
+				.then(response => {
+					alert(response.data);
+				})
+				.catch(err => {
+					alert("沒有紀錄");
+				});
+			},
+		},
+		mounted() {
+			this.getAll();
+		}
+	}).mount("#MyProfile");
+</script>

@@ -1,0 +1,147 @@
+.publishBtn{
+    color: red;
+}
+
+.publishDiv {
+    background-color: #d0d3e1;
+    padding: 30px;
+    box-sizing: border-box;
+}
+
+.writer{
+    background-color: #fff;
+}
+
+.Events {
+    margin:10px;
+    padding:30px;
+}
+.EventsPicture {
+    width:500px;
+    margin:0 auto;
+}
+
+.top-layer {
+    position: absolute; /*定位 */
+    z-index: 9999; /* 數字越大越上層 */
+}
+
+.wormhole-darkblue {
+    background-color: #040329 !important;
+}
+.wormhole-word-darkblue {
+    color: #000033 !important;
+}
+
+.wormhole-word-darkblue:hover {
+    color: #040329 !important;
+}
+
+.wormhole-word-lightPurple {
+    color: #e600e6 !important;
+}
+
+.wormhole-word-event {
+    color: #FFF6E0 !important;
+}
+
+    .wormhole-word-event:hover {
+        color: #3263cd !important;
+    }
+
+.wormhole-word-lightPinkPurple {
+    color: #ffe6ff !important;
+}
+
+.wormhole-word-noColor {
+    font-family: "Roboto", sans-serif,"微軟正黑體";
+}
+
+.wormhole-word {
+    font-family: "Roboto", sans-serif,"微軟正黑體";
+    color: whitesmoke !important;
+}
+
+.wormhole-popularArticle-bg {
+    background-image: url('../../images/home/artbg.jpg');
+    background-size: cover;
+}
+
+.wormhole-userInfo {
+    display: block;
+    width: 100%;
+    padding: .25rem 1rem;
+    clear: both;
+    font-weight: 400;
+    color: #212529;
+    text-align: inherit;
+    text-decoration: none;
+    white-space: nowrap;
+    background-color: transparent;
+    border: 0;
+}
+
+    .wormhole-userInfo:hover {
+        color: #1e2125;
+        background-color: #f8f9fa;
+    }
+
+.wormhole-aColor-lightBlue {
+    color: #040329;
+}
+
+    .wormhole-aColor-lightBlue:hover {
+        color: #7D93FF;
+    }
+.wormhole-articlesListCard {
+    background-color: #022757;
+}
+    .wormhole-articlesListCard:hover {
+        background-color: #022c64;
+    }
+.wormhole-articleBG {
+    background-color: #2F3547;
+    padding:20px;
+}
+.wormhole-article-commentCards {
+    background-color: whitesmoke;
+    margin: 15px;
+/*    margin-left: -10px;*/
+    padding: 5px;
+    border-radius: 5px;
+}
+
+.wormhole-shopBG {
+    background-color: #2F3547;
+}
+
+.wormhole-userInfoBG {
+    background-color: #2F3547;
+}
+
+.wormhole-CoinColor {
+    color: #FFF6E0;
+}
+.wormhole-artPostBTN {
+    position: fixed;
+    color: #000033;
+    font-weight: bold;
+    background-color: aliceblue;
+    padding: 10px;
+    border-radius: 5px;
+    z-index: 99;
+    bottom: 20px;
+    right: 100px;
+}
+
+    .wormhole-artPostBTN:hover {
+        color: darkblue;
+    }
+.wormhole-title-ellipsis {
+    display: -webkit-box;
+    -webkit-line-clamp: 1; /* 限制為 1 行 */
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-bottom: 10px;
+}

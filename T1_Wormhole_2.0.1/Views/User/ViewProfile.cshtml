@@ -1,0 +1,191 @@
+﻿<style>
+    .ellipsis-text {
+        display: -webkit-box;
+        -webkit-line-clamp: 3; /* 顯示幾行 */
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+</style>
+   <!-- Hero area Start-->
+    <!--  Hero area End -->
+    <!--? Checkout Area Start-->
+<section class="checkout_area section-padding">
+    <div id="viewProfile">
+        <div class="row" v-for="item in userinfo">
+            <div class="col-lg-3" align="center" style="color:antiquewhite;">
+                <!-- 大頭貼 -->
+                <div style="width: 200px;height: 200px; border: 2px solid black; border-radius: 100%; margin-bottom: 20px; overflow: hidden;">
+                    <img class="img-fluid" :src="'/api/ViewOthers/GetPhoto?id='+item.userId+'&?v='+rand" :title="item.name" />
+                </div>
+                <div v-for="item in userstatus">
+                    <h4 style="margin-top: 20px; margin-bottom: 20px;">LV: {{item.level}}</h4>
+                </div>
+                <div class="row" style="width: 200px;">
+                    <h3 style="margin:0px;">徽章</h3>
+                    <div class="col-4 m-md-1" style="width:30px;" v-for="(img,index) in badgeImg" :key="index">
+                        <img style="height:30px;" class="img-fluid" :src="img" alt="Obtain Image" />
+                    </div>
+                </div>
+                <div class="row" style="width: 200px;">
+                    <h3 style="margin:0px;">稱號</h3>
+                    <div class="m-md-1" style="width:200px;" v-for="(img,index) in achievementImg" :key="index">
+                        <img style="height:30px;" class="img-fluid" :src="img" alt="Obtain Image" />
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-5" style="color:antiquewhite;">
+                <h1 style="color:antiquewhite;">使用者資訊</h1>
+                <div class="row contact_form">
+                    <div class="col-md-10" style="margin-top: 10px;margin-bottom: 10px;">
+                        <label class="col-md-10" style="font-size: 16px;">使用者名稱:</label>
+                        <label class="col-md-10" style="font-size: 16px;">{{item.nickname}}</label>
+                    </div>
+                    <div class="col-md-10" style="margin-top: 10px;margin-bottom: 10px;">
+                        <label for="" class="col-md-10" style="font-size: 16px;">性別</label>
+                        <label for="" class="col-md-10" style="font-size: 16px;">{{item.sex}}</label>
+                    </div>
+                    <div class="col-md-10" style="margin-top: 10px;margin-bottom: 10px;">
+                        <label for="" class="col-md-10" style="font-size: 16px;">生日</label>
+                        <label for="" class="col-md-10" style="font-size: 16px;">{{item.birthday}}</label>
+                    </div>
+                    <div class="col-md-10" style="margin-top: 10px;margin-bottom: 10px;">
+                        <label for="" class="col-md-10" style="font-size: 16px;">簽名檔</label>
+                        <label for="" class="col-md-10" style="font-size: 16px;">{{item.signatureLine}}</label>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <div class="order_box">                    
+                    <div style="border-bottom:2px solid #333; margin-bottom:20px;">
+                        <h2 style="margin-bottom: 10px; border-bottom:0;">發文歷史紀錄</h2>
+                        <ul class="list" v-for="art in articlesHistory" :key="art.articleID">
+                            <li>
+                                <a :href="'/DiscussArticleView/DiscussArticle?id='+art.articleID">
+                                    <h3 style="margin:0px;">{{art.title}}</h3>
+                                    <p class="ellipsis-text">{{art.content}}</p>
+                                </a>
+                            </li>
+                        </ul>
+                        @* <a href="#" style="font-size: 16px; color: blue;">Show More</a> *@
+                    </div>
+                    <div style="border-bottom:2px solid #333; margin-bottom:20px;">
+                        <h2 style="margin-bottom: 10px; border-bottom:0;">留言歷史紀錄</h2>
+                        <ul class="list" v-for="com in commentHistory" :key="com.articleID">
+                            <li>
+                                <a :href="'/DiscussArticleView/DiscussArticle?id='+com.articleID">
+                                    <h3 style="margin:0px;">{{com.title}}</h3>
+                                    <p class="ellipsis-text">{{com.comment}}</p>
+                                </a>
+                            </li>
+                        </ul>
+                        @* <a href="#" style="font-size: 16px; color: blue;">Show More</a> *@
+                    </div>
+                    <button id="blockUser" type="button" class="btn btn-warning" style="width: 100%; margin-top: 20px;" @@click="blockThisUser(item.userId)">加入黑名單</button>
+                    <button id="sendInvite" type="button" class="btn btn-warning" style="width: 100%; margin-top: 20px;" @@click="sendInvite(item.userId)">邀請成為好友</button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</section>
+<!--End Checkout Area -->
+
+
+
+<script>
+    Vue.createApp({
+        data(){
+            return {
+				userinfo:[],
+				userstatus:[],
+				badgeImg:[],
+				achievementImg:[],	
+                articlesHistory:[],
+                commentHistory:[],
+                myUserId:0,
+            }
+        },
+        methods: {
+			 async getOthers(id) {
+				let self = this;
+				 await fetch('/api/ViewOthers/GetOther'+'?id='+id)
+				.then(x => x.json())
+				.then(res => {
+					self.userinfo = res;
+					var item=self.userinfo[0];
+					if(item.sex==true){
+                        item.sex="女性";
+					}
+					else{
+                        item.sex="男性";
+					}
+					// item.edit=false;
+				});
+				 await fetch('/api/ViewOthers/GetOtherStatus'+'?id='+id).then(x => x.json()).then(res => self.userstatus = res);
+				 await fetch('/api/ViewOthers/GetOtherBadgePicture'+'?id='+id).then(x => x.json()).then(res => self.badgeImg = res);
+				 await fetch('/api/ViewOthers/GetOtherAchievementPicture'+'?id='+id).then(x => x.json()).then(res => self.achievementImg = res);
+                 await fetch('/api/ViewOthers/GetOtherArticlesHistory'+'?id='+id).then(x => x.json()).then(res => self.articlesHistory = res);
+                await fetch('/api/ViewOthers/GetOtherCommentHistory'+'?id='+id).then(x => x.json()).then(res => self.commentHistory = res);
+			},
+            async blockThisUser(userId){                
+                 var request={};
+                    request.inviterId= this.myUserId;
+                    request.inviteeId = userId;
+                    request.invite = "同意邀請";
+                    request.relationType = "Friend";
+                    request.inviterName = "";
+                    request.inviteeName = "";
+
+                 await fetch('/api/Relation/AddBlock',{
+                     body:JSON.stringify(request),
+                     credentials: 'include',
+                    headers:{
+                        "Content-Type":"application/json",
+                        // "Accept":"application/json",
+                    },
+                    method:"PUT",
+                    }).then(x=>
+                        alert("已加入黑名單！"),                        
+                    );
+            },
+            async sendInvite(userId){
+                let self=this;
+                var request={};
+                    request.inviterId=self.myUserId;
+                    request.inviterName="";
+                    request.inviteeId = userId;
+                    request.inviteeName = "";
+                    request.invite = "邀請中";
+                    request.relationType = "無關係";
+
+                    await fetch('/api/Relation/AddRelation',{
+                     body:JSON.stringify(request),
+                     credentials: 'include',
+                    headers:{
+                        "Content-Type":"application/json",
+                        // "Accept":"application/json",
+                    },
+                    method:"PUT",
+                    }).then(x=>
+                        alert("已成功送出邀請"),
+                    );
+            },
+            async getUserId(){
+                 await fetch('/api/User/Get',{
+                    credentials: 'include',
+                }).then(x=>x.json()).then(res=>{
+                    this.myUserId=res[0].userId;
+                });
+             },
+        },
+        mounted() {
+			 let urlParams = new URLSearchParams(window.location.search);
+			 var id=urlParams.get('id');
+
+			 this.getOthers(id);
+             this.getUserId();
+        }
+	 }).mount("#viewProfile");
+</script>
+

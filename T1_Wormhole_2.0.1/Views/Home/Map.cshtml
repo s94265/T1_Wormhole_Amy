@@ -1,0 +1,286 @@
+﻿@using System.Security.Claims
+<link href="~/assets/css/map.css" rel="stylesheet" />
+
+<div class="row mt-20 mb-20">
+    <h2 class="location-header">現在位置</h2>
+    <div class="col-8 mb-10">
+        <div id="map" ></div>
+    </div>
+    <div class="col-4 mb-10">
+        <h2 class="nearby-area-header">探索附近區域</h2>
+        <div class="mb-2">
+            <label for="radiusSelect" class="search-range-label">搜尋範圍:</label>
+            <select id="radiusSelect" class="form-select">
+                <option value="1000">1 公里</option>
+                <option value="2000" selected>2 公里</option>
+                <option value="5000">5 公里</option>
+                <option value="10000">10 公里</option>
+            </select>
+        </div>
+        <div class="tracking-btns">
+            <button onclick="startWatchingPosition()" class="btn btn-success mt-2 ">立即開始定位</button>
+            <button  onclick="stopWatchingPosition()" class="btn btn-secondary mt-2">停止追蹤位置</button>
+        </div>
+        <button onclick="findNearbyFriends()" class="btn btn-primary centered-btn mt-2">搜尋附近好友</button>
+        <div id="errorMessage" class="text-danger mt-2" style="display: none;"></div>
+    </div>
+</div>
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCaa7UO2-acy2jtR3qzsv3R6txB6WnqxDo&loading=async&callback=initMap&v=weekly&solution_channel=GMP_CCS_geolocation_v2"
+        defer></script>
+<script>
+    let map, infoWindow, watchId, userMarker, friendMarkers = [];
+    const userId = @((User.Identity.IsAuthenticated ? User.FindFirst(ClaimTypes.NameIdentifier)?.Value : "0"));
+    console.log("User ID:", userId)
+
+        async function updateUserLocation(pos) {
+            try {
+                const response = await fetch(`/api/MapApi/UpdateLocation`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        userId: parseInt(userId),
+                        position: { lat: pos.lat, lng: pos.lng }
+                    })
+                });
+                console.log(`現在位置:${pos.lat}, ${pos.lng}`);
+                if (!response.ok) {
+                    throw new Error('Failed to update location');
+                }
+            }
+            catch (error) {
+                showError(`Error updating location: ${error.message}`);
+            }
+        }
+
+        async function fetchFriends() {
+            try {
+                const userId = parseInt(@User.FindFirst(ClaimTypes.NameIdentifier).Value);
+                const response = await fetch(`/api/MapApi/GetFriends`);
+                if (!response.ok) {
+                    throw new Error('Failed to fetch friends data');
+                }
+                const friends = await response.json();
+                return friends.map(friend => {
+                    let position = null;
+                    if (friend.position != null) {
+                        console.log(`Parsing Position for friend ${friend.userId}: ${friend.position}`);
+                        // More flexible regex to handle variations in WKT format
+                        const match = friend.position.match(/POINT\s*\(\s*([-\d.]+)\s+([-\d.]+)\s*\)/);
+                        if (match && match.length >= 3) {
+                            const lng = parseFloat(match[1]); // X-coordinate (longitude)
+                            const lat = parseFloat(match[2]); // Y-coordinate (latitude)
+                            if (isNaN(lat) || isNaN(lng)) {
+                                console.warn(`Invalid coordinates for friend ${friend.userId}: lat=${lat}, lng=${lng}`);
+                            } else {
+                                position = { lat, lng };
+                            }
+                        } else {
+                            console.warn(`Failed to parse Position for friend ${friend.userId}: ${friend.position}`);
+                        }
+                    } else {
+                        console.warn(`No Position data for friend ${friend.UserId}`);
+                    }
+                    return {
+                        userId: friend.userId,
+                        nickname: friend.nickname,
+                        position: position,
+                    };
+                });
+            }
+            catch (error) {
+                showError(`Error fetching friends: ${error.message}`);
+                return [];
+            }
+        }
+
+        function initMap() {
+            map = new google.maps.Map(document.getElementById("map"), {
+                center: { lat: 23.576, lng: 120.974 },
+                zoom: 9,
+            });
+            infoWindow = new google.maps.InfoWindow();
+
+
+            startWatchingPosition();
+        }
+
+        function startWatchingPosition() {
+            clearError(); // Clear any existing error message when starting tracking
+            if (navigator.geolocation) {
+                watchId = navigator.geolocation.watchPosition(
+                    (position) => {
+                        const pos = {
+                            lat: position.coords.latitude,
+                            lng: position.coords.longitude,
+                        };
+
+                        if (!userMarker) {
+                            userMarker = new google.maps.Marker({
+                                position: pos,
+                                map: map,
+                                title: "現在的位置",
+                                icon: {
+                                    url: "https://maps.google.com/mapfiles/ms/icons/red-dot.png"
+                                }
+                            });
+                            infoWindow.setPosition(pos);
+                            infoWindow.setContent("現在位置");
+                            infoWindow.open(map);
+                        } else {
+                            userMarker.setPosition(pos);
+                            if (infoWindow.getMap()) {
+                                infoWindow.setPosition(pos);
+                            }
+                        }
+
+                        map.setCenter(pos);
+
+                        updateUserLocation(pos);
+                    },
+                    (error) => {
+                        handleLocationError(true, infoWindow, map.getCenter());
+                    },
+                    {
+                        enableHighAccuracy: true,
+                        timeout: 120000,
+                        maximumAge: 60000
+                    }
+                );
+            } else {
+                handleLocationError(false, infoWindow, map.getCenter());
+            }
+        }
+     
+
+        function stopWatchingPosition() {
+            if (watchId) {
+                navigator.geolocation.clearWatch(watchId);
+                watchId = null;
+                if (userMarker) {
+                    userMarker.setMap(null);
+                    userMarker = null;
+                }
+                infoWindow.close();
+                showError("停止追蹤您的位置");
+            }
+        }
+
+        function handleLocationError(browserHasGeolocation, infoWindow, pos) {
+            infoWindow.setPosition(pos);
+            infoWindow.setContent(
+                browserHasGeolocation
+                    ? "錯誤：地理定位服務失敗。"
+                    : "錯誤：您的瀏覽器不支援地理定位。"
+            );
+            infoWindow.open(map);
+        }
+
+        function calculateDistance(lat1, lng1, lat2, lng2) {
+            const R = 6371e3;
+            const φ1 = lat1 * Math.PI / 180;
+            const φ2 = lat2 * Math.PI / 180;
+            const Δφ = (lat2 - lat1) * Math.PI / 180;
+            const Δλ = (lng2 - lng1) * Math.PI / 180;
+
+            const a = Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
+                      Math.cos(φ1) * Math.cos(φ2) *
+                      Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+            return R * c;
+        }
+
+            async function findNearbyFriends() {
+            if (!userMarker) {
+                showError("請啟用定位服務來尋找附近的朋友。");
+                return;
+            }
+
+            clearFriendMarkers();
+
+            const userPos = userMarker.getPosition();
+            const radius = parseInt(document.getElementById("radiusSelect").value);
+            const friends = await fetchFriends();
+            const nearbyFriends = [];
+            
+            console.log(`找到朋友 ${friends}`);
+
+            friends.forEach(friend => {
+                if (!friend.position) {
+                    console.warn(`No position data for friend ${friend.userId}`);
+                    return;
+                }
+                else{
+                    console.log(`朋友位置:${friend.position.lat},${friend.position.lng}`)
+                }
+
+                const distance = calculateDistance(
+                    userPos.lat(),
+                    userPos.lng(),
+                    friend.position.lat,
+                    friend.position.lng
+                );
+                if (distance <= radius) {
+                    nearbyFriends.push({ ...friend, distance });
+                }
+            });
+
+            nearbyFriends.forEach(friend => {
+                const marker = new google.maps.Marker({
+                    position: friend.position,
+                    map: map,
+                    title: friend.nickname,
+                    icon: {
+                        url: "https://maps.google.com/mapfiles/ms/icons/blue-dot.png"
+                    }
+                });
+
+                marker.addListener("click", () => {
+                    infoWindow.setContent(`
+                        <div>
+                            <h3>${friend.nickname}</h3>
+                            <p>距離: ${(friend.distance/1000).toFixed(2)} 公里</p>
+                        </div>
+                    `);
+                    infoWindow.open(map, marker);
+                });
+
+                friendMarkers.push(marker);
+            });
+
+            // Add the bounds adjustment here
+            if (nearbyFriends.length > 0) {
+                const bounds = new google.maps.LatLngBounds();
+                bounds.extend(userPos);
+                nearbyFriends.forEach(friend => bounds.extend(friend.position));
+                map.fitBounds(bounds, { padding: 50 });
+            }
+
+            if (nearbyFriends.length === 0) {
+                showError(`${radius / 1000}公里內沒有您的好友`);
+            } else {
+                clearError();
+            }
+        }
+
+        function clearFriendMarkers() {
+            friendMarkers.forEach(marker => marker.setMap(null));
+            friendMarkers = [];
+        }
+
+        function showError(message) {
+            const errorDiv = document.getElementById("errorMessage");
+            errorDiv.textContent = message;
+            errorDiv.style.display = "block";
+        }
+
+        function clearError() {
+            const errorDiv = document.getElementById("errorMessage");
+            errorDiv.textContent = "";
+            errorDiv.style.display = "none";
+        }
+
+        window.initMap = initMap;
+</script>

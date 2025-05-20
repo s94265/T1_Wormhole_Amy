@@ -1,0 +1,144 @@
+﻿@using System.Web
+
+
+<body>
+
+    <main class="login-bg" style="height: 120vh;">
+        <!-- login Area Start -->
+        <div class="login-form-area" id="app">
+            <form action="/Account/Login" method="post">
+                <div class="login-form">
+                    <!-- Login Heading -->
+                    <div class="login-heading">
+                        <span style="font-weight:bolder;">登入</span>
+                    </div>
+                    <!-- Single Input Fields -->
+                    <div class="input-box">
+
+                        <div class="single-input-fields" style="overflow: hidden;">
+                            <label style="font-size:20px; font-weight:bold;">帳號或電子郵件</label>
+                            <input type="text" v-model="UserIdentifier" name="UserIdentifier" @@input="checkIdentifier" placeholder="請輸入帳號或電子郵件" minlength="4">
+                            <label v-show="isEmptyUserIdentifier" style="float:left; color: red; font-size: 12px; margin-bottom: 20px;">此欄位為必填</label>
+                        </div>
+                        <div class="single-input-fields" style="overflow: hidden;">
+                            <label style="font-size:20px; font-weight:bold;">密碼</label>
+                            <input type="password" v-model="Password" name="Password" @@input="checkPassword" placeholder="輸入密碼" minlength="8" maxlength="20">
+                            <label v-show="isEmptyPassword" style="float:left; color: red; font-size: 12px; margin-bottom: 20px;">此欄位為必填</label>
+                        </div>
+                        <div class="single-input-fields login-check" style="margin-top: 20px;">
+                            <input type="checkbox" id="KeepLog" name="KeepLog">
+                            <label for="KeepLog" style="font-weight:bold; line-height:1;">保持登入狀態</label>
+                        </div>
+                        <div class="single-input-fields login-check" style="margin-top: 20px; margin-bottom:40px">
+                            <input type="checkbox" id="RememberMe" name="RememberMe">
+                            <label for="RememberMe" style="font-weight:bold; line-height:1;">記住我</label>
+                        </div>
+                        <div class="single-input-fields login-check">
+                            <a href="/Account/ForgotPassword" style="margin-bottom: 20px;font-size:20px; font-weight:bold;">忘記密碼?</a> @* 修改連結內容 *@
+                        </div>
+                        <div class="single-input-fields login-check" style="margin-top: 20px;">
+                            <label style="font-size:20px; font-weight:bold;">使用其他帳號登入</label>
+                        </div>
+                        <div id="g_id_onload"
+                             data-client_id="775349593232-348s21pflg84e22t1j34h9kqtl5hfvgb.apps.googleusercontent.com"
+                             data-login_uri="@ViewBag.BaseUrl/Account/ValidGoogleLogin"
+                             data-auto_prompt="false">
+                        </div>
+                        <div class="g_id_signin"
+                             data-type="standard"
+                             data-size="large"
+                             data-theme="outline"
+                             data-text="sign_in_with"
+                             data-shape="rectangular"
+                             data-logo_alignment="left">
+                        </div>
+                    </div>
+                    
+                    <!-- form Footer -->
+                    <div class="login-footer">
+                        <p style="font-size:20px; font-weight:bold;">還沒有帳號嗎? 現在<a href="/Account/Register">註冊</a>吧!</p> @* 修改連結內容 *@
+                        <button v-bind:disabled="!formIsValid" class="submit-btn3" type="submit" style="font-size:20px; font-weight:bold;">登入</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+        <!-- login Area End -->
+    </main>
+
+
+</body>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        var hasLoginMessage = @((TempData["LoginFail"] != null) ? "true" : "false");
+        if (hasLoginMessage) {
+            Swal.fire({
+                title: '登入異常',
+                text: '@Html.Raw(HttpUtility.JavaScriptStringEncode(TempData["LoginFail"]?.ToString() ?? ""))',
+                confirmButtonText: '確定'
+            });
+        }
+    });
+     Vue.createApp({
+        data() {
+            return {
+                    UserIdentifier: "",
+                    Password:"",
+                    isEmptyUserIdentifier:true,
+                    isEmptyPassword:true
+            };
+        },
+        methods: {
+            GetAccount(){
+                let self = this;
+                fetch("/api/AccountApi/GetLoginName")
+                .then(response => response.text())
+                .then(data => {
+                    self.UserIdentifier = data;
+                })
+                .catch(error => {
+                    console.log('Error in Getting Account Info', error);
+                });
+            },
+            GetPassword(){
+                let self = this;
+                fetch("/api/AccountApi/GetPassword")
+                .then(response => response.text())
+                .then(data => {
+                    self.Password = data;
+                })
+                .catch(error => {
+                    console.log('Error in Getting Password', error);
+                });
+            },
+        },
+        computed:{
+            formIsValid() {
+                let self = this;
+                return !self.isEmptyUserIdentifier && !self.isEmptyPassword;
+            }
+        },
+        updated(){
+                let self = this;
+                if(self.UserIdentifier.length > 0){
+                    self.isEmptyUserIdentifier = false;
+                }
+                else
+                {
+                    self.isEmptyUserIdentifier = true;
+                }
+
+                if(self.Password == ""){
+                    self.isEmptyPassword = true;
+                    return
+                }
+                else{
+                    self.isEmptyPassword = false;
+                }
+        },
+        mounted() {
+            this.GetAccount();
+            this.GetPassword();
+        },
+    }).mount("#app")
+</script>

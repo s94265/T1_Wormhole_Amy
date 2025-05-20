@@ -1,0 +1,52 @@
+﻿#map {
+    height:500px;
+    width:700px;
+}
+
+/* Styling for the location header */
+.location-header {
+    color: white;
+}
+
+/* Styling for the nearby area header */
+.nearby-area-header {
+    color: white;
+}
+
+/* Styling for the search range label */
+.search-range-label {
+    color: white;
+}
+
+/* Center buttons */
+.centered-btn {
+    display: block;
+    margin: 0 auto 10px auto; /* Center horizontally with some bottom margin */
+    width: fit-content; /* Ensure the button doesn't stretch */
+}
+
+/* Flex container for tracking buttons */
+.tracking-btns {
+    display: flex;
+    justify-content: center; /* Center buttons horizontally */
+    gap: 10px; /* Space between buttons */
+    margin-bottom: 10px; /* Space below the row */
+}
+
+.custom-map-control-button {
+    color:black;
+    background-color: #fff;
+    border: 0;
+    border-radius: 2px;
+    box-shadow: 0 1px 4px -1px rgba(0, 0, 0, 0.3);
+    margin: 10px;
+    padding: 0 0.5em;
+    font: 400 18px Roboto, Arial, sans-serif;
+    overflow: hidden;
+    height: 40px;
+    cursor: pointer;
+}
+
+.custom-map-control-button:hover {
+    background: rgb(235, 235, 235);
+}
